@@ -2,11 +2,12 @@ import * as path from 'path';
 import * as fs from 'fs';
 import envPaths from 'env-paths';
 import { Mutex } from 'async-mutex';
+import { Proxy } from './proxy';
 
 import { delay, isErrorLike } from '@httptoolkit/util';
 import {
     PluggableAdmin,
-    generateCACertificate
+    generateCACertificate,
 } from 'mockttp';
 import {
     MockttpAdminPlugin
@@ -194,7 +195,7 @@ export async function runHTK(options: {
             http: {
                 options: {
                     cors: false, // Don't add mocked CORS responses to intercepted traffic
-                    recordTraffic: false, // Don't persist traffic here (keep it in the UI)
+                    recordTraffic: true, // Don't persist traffic here (keep it in the UI)
                     https: httpsConfig // Use our HTTPS config for HTTPS MITMs.
                 }
             },
@@ -272,4 +273,12 @@ export async function runHTK(options: {
 
     console.log('Server started in', Date.now() - standaloneSetupTime, 'ms');
     console.log('Total startup took', Date.now() - startTime, 'ms');
+
+    const proxy = new Proxy()
+    await proxy.Start();
+    return;
+    proxy.onMockttpEvent('request', (data) => {
+        console.log('Noder success', data)
+    })
 }
+
