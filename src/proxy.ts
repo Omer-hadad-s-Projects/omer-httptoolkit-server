@@ -7,8 +7,12 @@ import {
     SubscribableEvent,
     MockttpHttpsOptions
 } from 'mockttp';
+import * as MockRTC from 'mockrtc';
 
-type HtkAdminClient = PluggableAdmin.AdminClient<{ http: MockttpPluggableAdmin.MockttpAdminPlugin }>;
+type HtkAdminClient =
+    // WebRTC is only supported for new servers:
+    | PluggableAdmin.AdminClient<{ http: MockttpPluggableAdmin.MockttpAdminPlugin, webrtc: MockRTC.MockRTCAdminPlugin }>
+    | PluggableAdmin.AdminClient<{ http: MockttpPluggableAdmin.MockttpAdminPlugin }>;
 
 export class Proxy {
     private mockttpRequestBuilder!: MockttpPluggableAdmin.MockttpAdminRequestBuilder;
@@ -77,42 +81,42 @@ function startServer(
     maxDelay = 500,
     delayMs = 200
 ): Promise<void> {
-     return adminClient.start(config as any).catch((e) => {
-    //     console.log('Server initialization failed', e);
+    return adminClient.start(config as any).catch((e) => {
+        console.log('Server initialization failed', e);
 
-    //     if (e.response) {
-    //         // Server is listening, but failed to start as requested.
-    //         // This generally means that some of our config is bad.
+        if (e.response) {
+        // Server is listening, but failed to start as requested.
+        // This generally means that some of our config is bad.
 
-    //         if (e.message?.includes('unrecognized plugin: webrtc')) {
-    //             // We have webrtc enabled, and the server is new enough to recognize plugins and try to
-    //             // start them, but too old to actually support the WebRTC plugin. Skip that entirely then:
-    //             config = {
-    //                 ...config,
-    //                 webrtc: undefined
-    //             };
-    //         } else {
-    //             // Some other error - probably means that the HTTP port is in use.
-    //             // Drop the port config and try again:
-    //             config = {
-    //                 ...config,
-    //                 http: {
-    //                     ...config.http,
-    //                     port: undefined
-    //                 }
-    //             }
-    //         }
+            if (e.message?.includes('unrecognized plugin: webrtc')) {
+                // We have webrtc enabled, and the server is new enough to recognize plugins and try to
+                // start them, but too old to actually support the WebRTC plugin. Skip that entirely then:
+                config = {
+                    ...config,
+                    webrtc: undefined
+                };
+            } else {
+                // Some other error - probably means that the HTTP port is in use.
+                // Drop the port config and try again:
+                config = {
+                    ...config,
+                    http: {
+                        ...config.http,
+                        port: undefined
+                    }
+                }
+            }
 
-    //         // Retry with our updated config after the tiniest possible delay:
-    //         return delay(100).then(() =>
-    //             startServer(adminClient, config, maxDelay, delayMs)
-    //         );
-    //     }
+            // Retry with our updated config after the tiniest possible delay:
+            return delay(100).then(() =>
+                startServer(adminClient, config, maxDelay, delayMs)
+            );
+        }
 
-    //     // For anything else (unknown errors, or more likely server not listening yet),
-    //     // wait briefly and then retry the same config:
-    //     return delay(Math.min(delayMs, maxDelay)).then(() =>
-    //         startServer(adminClient, config, maxDelay, delayMs * 1.2)
-    //     );
+        // For anything else (unknown errors, or more likely server not listening yet),
+        // wait briefly and then retry the same config:
+        return delay(Math.min(delayMs, maxDelay)).then(() =>
+            startServer(adminClient, config, maxDelay, delayMs * 1.2)
+        );
     }) as Promise<void>;
 }
