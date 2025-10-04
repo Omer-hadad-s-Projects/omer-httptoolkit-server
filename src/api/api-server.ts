@@ -134,7 +134,9 @@ export class HttpToolkitServerApi extends events.EventEmitter {
 
     start() {
         return new Promise<void>((resolve, reject) => {
-            this.server.listen(45457, '127.0.0.1', resolve); // Localhost only
+            // Allow overriding the bind host via HTK_BIND_HOST (useful for containers).
+            const bindHost = process.env.HTK_BIND_HOST || '127.0.0.1';
+            this.server.listen(45457, bindHost, resolve);
             this.server.once('error', reject);
         });
     }

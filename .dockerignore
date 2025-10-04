@@ -1,0 +1,20 @@
+node_modules
+build
+dist
+.git
+.github
+test
+tests
+*.log
+*.tgz
+coverage
+/.vscode
+/.idea
+npm-debug.log
+yarn-error.log
+*.tsbuildinfo
+/.cache
+
+# Exclude local compiled output so the Docker build produces its own `lib/`
+lib
+
