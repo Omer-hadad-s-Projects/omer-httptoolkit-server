@@ -24,9 +24,9 @@ RUN npm run build:src
 FROM node:22.20.0-bullseye-slim
 WORKDIR /usr/src/app
 
-# Ensure certificates are available in the runtime image
+# Ensure certificates are available in the runtime image and install ADB tools
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates android-tools-adb \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy package files and install only production dependencies
