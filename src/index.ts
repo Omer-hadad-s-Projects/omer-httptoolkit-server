@@ -214,9 +214,10 @@ export async function runHTK(options: {
 
     manageBackgroundServices(standalone, httpsConfig);
 
+    const bindHost = process.env.HTK_BIND_HOST || '127.0.0.1';
     await standalone.start({
         port: 45456,
-        host: '127.0.0.1'
+        host: bindHost
     });
 
     addShutdownHandler(() => standalone.stop());
